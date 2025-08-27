@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 void main() {
   var logger = Logger();
   logger.d("Logger iniciado correctamente");
@@ -77,17 +78,29 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Widget> _buildFooterButtons() {
     return [
       IconButton(
-        icon: const Icon(Icons.remove),
+        icon: SvgPicture.asset(
+        'assets/icons/pawn.svg',
+        width: 24,
+        height: 24,
+      ),
         onPressed: _decrementCounter,
         tooltip: "Restar",
       ),
       IconButton(
-        icon: const Icon(Icons.add),
+        icon: SvgPicture.asset(
+        'assets/icons/raven.svg',
+        width: 24,
+        height: 24,
+      ),
         onPressed: _incrementCounter,
         tooltip: "Sumar",
       ),
       IconButton(
-        icon: const Icon(Icons.refresh),
+         icon: SvgPicture.asset(
+        'assets/icons/dog.svg',
+        width: 24,
+        height: 24,
+      ),
         onPressed: _resetCounter,
         tooltip: "Restaurar",
       ),
