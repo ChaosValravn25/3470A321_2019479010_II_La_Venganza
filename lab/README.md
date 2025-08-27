@@ -1,16 +1,15 @@
 # lab
 
-A new Flutter project.
+el laboratorio para dispositivos mobiles.
 
-## Getting Started
+## desarrolladora
 
-This project is a starting point for a Flutter application.
+Ivonne santander Soto
 
-A few resources to get you started if this is your first Flutter project:
+## Matricula
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+2019479010
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## descripcion
+
+Este laboratorio es un ejemplo de implementacion y modificacion del flutter para los futuros trabajos y proyectos para dispositivos mobiles.
