@@ -90,11 +90,11 @@ class _HomePageState extends State<HomePage> {
               "Pixel Art sobre una grilla personalizable",
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 35),
             Text(
               '$_counter',
               style: TextStyle(
-                fontSize: 40,
+                fontSize: 50,
                 fontWeight: FontWeight.bold,
                 color: _currentColor,
               ),
@@ -110,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 10),
                   Image.asset('assets/images/Pizza.webp', width: 80, height: 80),
                   const SizedBox(width: 10),
-                  Image.asset('assets/images/Watermelo.webp', width: 80, height: 80),
+                  Image.asset('assets/images/Watermelon.webp', width: 80, height: 80),
                 ],
               ),
             ),

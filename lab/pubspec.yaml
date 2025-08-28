@@ -59,7 +59,7 @@ flutter:
     - assets/icons/dog.svg
     - assets/images/Hot-Pepper.webp
     - assets/images/Pizza.webp
-    - assets/images/Watermelo.webp
+    - assets/images/Watermelon.webp
   fonts:
     - family: Jacquard12
       fonts:
