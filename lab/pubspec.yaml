@@ -60,6 +60,10 @@ flutter:
     - assets/images/Hot-Pepper.webp
     - assets/images/Pizza.webp
     - assets/images/Watermelo.webp
+  fonts:
+    - family: Jacquard12
+      fonts:
+      - asset: assets/fonts/Jacquard12-Regular.ttf
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
