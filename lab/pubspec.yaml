@@ -57,7 +57,9 @@ flutter:
     - assets/icons/pawn.svg
     - assets/icons/raven.svg
     - assets/icons/dog.svg
-    
+    - assets/images/Hot-Pepper.webp
+    - assets/images/Pizza.webp
+    - assets/images/Watermelo.webp
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
