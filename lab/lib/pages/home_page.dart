@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 30),
-            // ✅ Imágenes como pide Lab 3
+            //Imágenes como pide Lab 3
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
