@@ -4,10 +4,7 @@ import 'pages/home_page.dart'; //Importamos la nueva página
 
 var logger = Logger();
 
-void main() {
-  logger.d("Logger iniciado correctamente desde main()");
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
