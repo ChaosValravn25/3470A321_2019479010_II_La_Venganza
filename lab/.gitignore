@@ -32,6 +32,20 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+.packages
+pubspec.lock
+
+# Build
+build/
+windows/flutter/ephemeral/
+ios/Flutter/
+ios/.symlinks/
+android/.gradle/
+android/app/build/
+
+# VSCode / IntelliJ
+.vscode/
+.idea/
 
 # Symbolication related
 app.*.symbols
