@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lab/main.dart';
+import 'package:la_venganza/main.dart';
 
  // Update with the correct package name
 
