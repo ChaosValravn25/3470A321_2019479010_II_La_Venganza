@@ -14,8 +14,10 @@ class PixelArtScreen extends StatefulWidget {
 
 class _PixelArtScreenState extends State<PixelArtScreen> {
   late List<List<Color>> grid;
+  bool initialized = false; // para controlar si ya se construyó la grilla
 
-   @override
+  // Ciclo de vida extendido con logs
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     logger.i("didChangeDependencies ejecutado");
@@ -54,13 +56,37 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
   @override
   void initState() {
     super.initState();
-    final gridSize = context.read<ConfigurationData>().gridSize;
-    grid = List.generate(gridSize, (_) => List.filled(gridSize, Colors.white));
+    logger.i("initState ejecutado - preparando grilla inicial");
   }
 
+  // 🔸 Construcción del widget
   @override
   Widget build(BuildContext context) {
     final config = Provider.of<ConfigurationData>(context);
+
+    // Si aún se está cargando la configuración desde SharedPreferences
+    if (config.isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.grey[400],
+          title: const Text("Pixel Art"),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // 🔹 Inicializamos la grilla una sola vez, cuando ya se tiene config lista
+    if (!initialized) {
+      grid = List.generate(
+        config.gridSize,
+        (_) => List.filled(config.gridSize, Colors.white),
+      );
+      initialized = true;
+      logger.i(
+          "Grilla inicializada con tamaño ${config.gridSize}x${config.gridSize}");
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +99,8 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
             Expanded(
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: config.gridSize),
+                  crossAxisCount: config.gridSize,
+                ),
                 itemCount: config.gridSize * config.gridSize,
                 itemBuilder: (context, index) {
                   final x = index ~/ config.gridSize;
@@ -97,12 +124,20 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  grid = List.generate(config.gridSize,
-                      (_) => List.filled(config.gridSize, Colors.white));
+                  grid = List.generate(
+                    config.gridSize,
+                    (_) => List.filled(config.gridSize, Colors.white),
+                  );
                 });
+                logger.i("Grilla reiniciada");
               },
-              child: const Text("Limpiar grilla"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: config.mainColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("🧹 Limpiar grilla"),
             ),
+            const SizedBox(height: 15),
           ],
         ),
       ),
