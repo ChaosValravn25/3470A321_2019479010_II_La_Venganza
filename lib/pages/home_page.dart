@@ -68,7 +68,7 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Laboratorio 5 - Estados del Widget y Data en la App",
+                  "Laboratorio 6 - Persistencia de datos en una aplicación.",
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: config.mainColor,
