@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/configuration_data.dart';
+
 
 class ListCreationScreen extends StatelessWidget {
   const ListCreationScreen({super.key});
 
-  // Lista local de creaciones del usuario
-  final List<String> creations = const [
-    'Mi Creeper', 'Mario 8x8', 'Logo U', 'Corazón arcoíris'
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final config = Provider.of<ConfigurationData>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Creaciones')),
-      body: ListView.separated(
-        itemCount: creations.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+      appBar: AppBar(
+        title: const Text("Mis Creaciones"),
+        backgroundColor: config.mainColor,
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(10),
+        itemCount: 8,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: const Icon(Icons.brush), // ícono para “creaciones”
-            title: Text(creations[index]),
-            trailing: IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Compartir: ${creations[index]}')),
-                );
-              },
+          return Container(
+            decoration: BoxDecoration(
+              color: config.mainColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                "Creación ${index + 1}",
+                style: TextStyle(
+                  color: config.mainColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           );
         },

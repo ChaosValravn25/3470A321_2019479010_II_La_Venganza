@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/configuration_data.dart';
+import 'package:logger/logger.dart';
+
+final logger = Logger();
 
 class ListArtScreen extends StatelessWidget {
   const ListArtScreen({super.key});
 
-  // Lista local de artes disponibles (puedes cambiar los nombres)
-  final List<String> arts = const [
-    'Gato 8x8', 'Creeper', 'Space Invader', 'Corazón', 'Hongo Mario'
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final config = Provider.of<ConfigurationData>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Pixel Art List')),
+      appBar: AppBar(
+        title: const Text("Lista de Arte"),
+        backgroundColor: config.mainColor,
+      ),
       body: ListView.builder(
-        itemCount: arts.length,
+        itemCount: 10,
         itemBuilder: (context, index) {
           return ListTile(
-            leading: const Icon(Icons.grid_on), // ícono para lista de artes
-            title: Text(arts[index]),
-            trailing: const Icon(Icons.chevron_right),
+            leading: const Icon(Icons.image),
+            title: Text("Pixel Art #$index"),
+            subtitle: const Text("Creación simple de ejemplo"),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Seleccionaste: ${arts[index]}')),
-              );
+              logger.i("Abriendo Pixel Art #$index");
             },
           );
         },

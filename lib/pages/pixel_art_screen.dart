@@ -3,13 +3,8 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../providers/configuration_data.dart';
 
-// Inicializamos el logger para registrar los eventos del ciclo de vida
 var logger = Logger();
 
-/// Pantalla principal para crear dibujos tipo Pixel Art.
-/// Esta versión se encuentra modificada para el Laboratorio N°6:
-/// ahora integra datos persistentes del Provider `ConfigurationData`,
-/// que obtiene su información desde SharedPreferences.
 class PixelArtScreen extends StatefulWidget {
   const PixelArtScreen({super.key});
 
@@ -19,63 +14,57 @@ class PixelArtScreen extends StatefulWidget {
 
 class _PixelArtScreenState extends State<PixelArtScreen> {
   late List<List<Color>> grid;
-  bool initialized = false; // controla si la grilla ya fue generada
+  bool initialized = false;
 
-  // ----------------------------------------------------------
-  // CICLO DE VIDA DEL STATEFUL WIDGET
-  // ----------------------------------------------------------
+  // 🔹 Ciclo de vida extendido con logs
   @override
   void initState() {
     super.initState();
-    logger.i("initState ejecutado → preparando grilla inicial (sin datos aún)");
+    logger.i("initState ejecutado - preparando grilla inicial");
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    logger.i("didChangeDependencies ejecutado → dependencias listas");
+    logger.i("didChangeDependencies ejecutado");
   }
 
   @override
   void didUpdateWidget(covariant PixelArtScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    logger.i("didUpdateWidget ejecutado → se actualizó el widget");
+    logger.i("didUpdateWidget ejecutado");
   }
 
   @override
   void setState(VoidCallback fn) {
     super.setState(fn);
-    logger.i("setState ejecutado → el estado cambió");
+    logger.i("setState ejecutado");
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    logger.w("deactivate ejecutado → widget fuera del árbol temporalmente");
+    logger.w("deactivate ejecutado");
   }
 
   @override
   void dispose() {
     super.dispose();
-    logger.w("dispose ejecutado → widget destruido correctamente");
+    logger.w("dispose ejecutado");
   }
 
   @override
   void reassemble() {
     super.reassemble();
-    logger.d("reassemble ejecutado → hot reload detectado");
+    logger.d("reassemble ejecutado (Hot Reload)");
   }
 
-  // ----------------------------------------------------------
-  // CONSTRUCCIÓN DE LA INTERFAZ
-  // ----------------------------------------------------------
+  // 🔸 Construcción del widget principal
   @override
   Widget build(BuildContext context) {
     final config = Provider.of<ConfigurationData>(context);
 
-    // 1️⃣ Mientras se cargan los datos persistidos (SharedPreferences)
     if (config.isLoading) {
-      logger.i("Cargando configuración persistida...");
       return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.grey[400],
@@ -87,7 +76,7 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
       );
     }
 
-    // 2️⃣ Cuando la configuración ya está lista, inicializamos la grilla una sola vez
+    // 🔹 Inicializamos la grilla una sola vez
     if (!initialized) {
       grid = List.generate(
         config.gridSize,
@@ -97,36 +86,52 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
       logger.i("Grilla inicializada con tamaño ${config.gridSize}x${config.gridSize}");
     }
 
-    // 3️⃣ Construcción principal del Scaffold
     return Scaffold(
       appBar: AppBar(
         backgroundColor: config.mainColor,
         title: const Text("Pixel Art"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Limpiar grilla',
-            onPressed: () {
-              setState(() {
-                grid = List.generate(
-                  config.gridSize,
-                  (_) => List.filled(config.gridSize, Colors.white),
+            icon: const Icon(Icons.save_alt),
+            tooltip: 'Guardar respaldo',
+            onPressed: () async {
+              await config.backupToFile();
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Respaldo de configuración guardado"),
+                    duration: Duration(seconds: 3),
+                  ),
                 );
-              });
-              logger.i("Grilla reiniciada manualmente");
+              }
+
+              logger.i("Respaldo de configuración guardado");
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.restore),
+            tooltip: 'Restaurar configuración',
+            onPressed: () async {
+              await config.restoreFromFile();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Configuración restaurada desde archivo"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+              logger.i("Configuración restaurada desde archivo local");
             },
           ),
         ],
       ),
-
-      // 4️⃣ Cuerpo principal
       body: Center(
         child: Column(
           children: [
-            // Grilla dinámica generada con base en la configuración persistente
             Expanded(
               child: GridView.builder(
-                padding: const EdgeInsets.all(8),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: config.gridSize,
                 ),
@@ -141,7 +146,7 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
                             ? config.mainColor
                             : Colors.white;
                       });
-                      logger.d("Celda [$x][$y] alternada → ${grid[x][y]}");
+                      logger.d("Célula ($x, $y) cambiada a ${grid[x][y]}");
                     },
                     child: Container(
                       margin: const EdgeInsets.all(1),
@@ -151,9 +156,7 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
                 },
               ),
             ),
-
-            // Botón para limpiar grilla (reinicio visual)
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () {
                 setState(() {
                   grid = List.generate(
@@ -161,15 +164,17 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
                     (_) => List.filled(config.gridSize, Colors.white),
                   );
                 });
-                logger.i("🧹 Grilla limpiada por el usuario");
+                logger.i("Grilla reiniciada por el usuario");
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: config.mainColor,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
               ),
-              child: const Text("🧹 Limpiar grilla"),
+              icon: const Icon(Icons.cleaning_services_outlined),
+              label: const Text("Limpiar grilla"),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
           ],
         ),
       ),
