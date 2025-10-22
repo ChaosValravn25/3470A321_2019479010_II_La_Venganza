@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import '../providers/configuration_data.dart';
 
+
 var logger = Logger();
 
 class PixelArtScreen extends StatefulWidget {
