@@ -5,7 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
-import 'package:path/path.dart' as path;
 import '../providers/configuration_data.dart';
 
 var logger = Logger();
