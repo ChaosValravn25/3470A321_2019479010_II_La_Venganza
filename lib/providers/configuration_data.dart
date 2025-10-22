@@ -2,43 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:la_venganza/services/shared_preferences_service.dart';
 import 'package:la_venganza/services/file_storage_service.dart';
 
-/// Clase que maneja el estado global de configuración del usuario.
-/// Aquí se integran tanto SharedPreferences (para configuraciones ligeras)
-/// como almacenamiento de archivos (para respaldos del estado o configuraciones).
 class ConfigurationData extends ChangeNotifier {
   final SharedPreferencesService _prefs;
   final FileStorageService _fileStorage;
 
-  // Variables internas del modelo
   Color _mainColor = Colors.green;
   int _gridSize = 8;
   bool _isLoading = true;
+  final List<String> _imagePaths = []; // Mantengo como lista mutable
 
-  // Getters públicos
-  Color get mainColor => _mainColor;
-  int get gridSize => _gridSize;
-  bool get isLoading => _isLoading;
-
-  String get mainColorString =>
-      _mainColor.toString().split('(')[1].split(')')[0];
-
-  /// Constructor que inicializa con los servicios de persistencia
   ConfigurationData(this._prefs, this._fileStorage) {
     _loadFromPrefsAndFile();
   }
 
-  /// 🔸 Carga inicial combinada:
-  /// Lee datos desde SharedPreferences y verifica si existe respaldo en archivo.
+  Color get mainColor => _mainColor;
+  int get gridSize => _gridSize;
+  bool get isLoading => _isLoading;
+  List<String> get imagePaths => _imagePaths;
+  String? get lastImagePath => _imagePaths.isNotEmpty ? _imagePaths.last : null;
+
+  String get mainColorString =>
+      _mainColor.toString().split('(')[1].split(')')[0];
+
   Future<void> _loadFromPrefsAndFile() async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      // 1️⃣ Intentamos cargar configuración desde SharedPreferences
       final size = await _prefs.loadGridSize();
       final colorHex = await _prefs.loadMainColor();
 
-      // 2️⃣ Si hay respaldo en archivo, lo priorizamos
       final fileData = await _fileStorage.readConfiguration();
       if (fileData != null) {
         _gridSize = fileData['gridSize'] ?? size;
@@ -48,7 +41,6 @@ class ConfigurationData extends ChangeNotifier {
           _mainColor = Color(int.parse('0x$hex'));
         }
       } else {
-        // Si no hay respaldo, usamos datos de SharedPreferences
         _gridSize = size;
         if (colorHex != null) {
           final hex = colorHex.replaceFirst('#', '');
@@ -58,7 +50,6 @@ class ConfigurationData extends ChangeNotifier {
         }
       }
 
-      // 3️⃣ Guardamos de nuevo ambos orígenes para mantener sincronizados
       await _prefs.saveGridSize(_gridSize);
       await _prefs.saveMainColor(_mainColor.value.toRadixString(16));
       await _fileStorage.saveConfiguration(
@@ -73,7 +64,6 @@ class ConfigurationData extends ChangeNotifier {
     }
   }
 
-  /// Cambia el tamaño de la grilla y actualiza tanto en memoria como en persistencia.
   void setGridSize(int newSize) {
     _gridSize = newSize;
     _prefs.saveGridSize(newSize);
@@ -84,7 +74,6 @@ class ConfigurationData extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Cambia el color principal y lo sincroniza en ambos tipos de almacenamiento.
   void setMainColor(Color color) {
     _mainColor = color;
     final hex = color.value.toRadixString(16);
@@ -96,7 +85,6 @@ class ConfigurationData extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Guarda todo el estado actual en un archivo externo (respaldo manual).
   Future<void> backupToFile() async {
     await _fileStorage.saveConfiguration(
       gridSize: _gridSize,
@@ -105,7 +93,6 @@ class ConfigurationData extends ChangeNotifier {
     debugPrint("💾 Respaldo de configuración guardado correctamente");
   }
 
-  /// Restaura el estado desde el archivo (si existe).
   Future<void> restoreFromFile() async {
     final fileData = await _fileStorage.readConfiguration();
     if (fileData != null) {
@@ -120,5 +107,10 @@ class ConfigurationData extends ChangeNotifier {
     } else {
       debugPrint("⚠️ No se encontró archivo de respaldo");
     }
+  }
+
+  void addCreation(String filePath) {
+    _imagePaths.add(filePath);
+    notifyListeners();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../providers/configuration_data.dart';
+import 'dart:io';
 
 final logger = Logger();
 
@@ -65,6 +66,16 @@ class HomePage extends StatelessWidget {
                 "Color activo: ${config.mainColorString}",
                 style: TextStyle(fontSize: 16, color: config.mainColor),
               ),
+              const SizedBox(height: 20),
+              if (config.lastImagePath != null)
+                Image.file(
+                  File(config.lastImagePath!),
+                  height: 200,
+                  width: 200,
+                  fit: BoxFit.cover,
+                )
+              else
+                const Text("No hay creaciones recientes"),
               const SizedBox(height: 40),
               _buildButton(context, "🎨 Pixel Art", '/pixelArt', Colors.teal),
               _buildButton(context, "⚙️ Configuración", '/config', Colors.orange),
