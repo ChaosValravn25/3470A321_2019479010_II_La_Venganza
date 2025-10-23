@@ -6,6 +6,9 @@ class ConfigurationData extends ChangeNotifier {
   final SharedPreferencesService _prefs;
   final FileStorageService _fileStorage;
 
+  double _backgroundOpacity = 0.5;
+  String? _backgroundImagePath; // ruta del archivo guardado o null
+
   Color _mainColor = Colors.green;
   int _gridSize = 8;
   bool _isLoading = true;
@@ -15,6 +18,8 @@ class ConfigurationData extends ChangeNotifier {
     _loadFromPrefsAndFile();
   }
 
+  double get backgroundOpacity => _backgroundOpacity;
+  String? get backgroundImagePath => _backgroundImagePath;
   Color get mainColor => _mainColor;
   int get gridSize => _gridSize;
   bool get isLoading => _isLoading;
@@ -31,6 +36,12 @@ class ConfigurationData extends ChangeNotifier {
 
       final size = await _prefs.loadGridSize();
       final colorHex = await _prefs.loadMainColor();
+
+      final opacity = await _prefs.loadBackgroundOpacity(); // implementar en shared_preferences_service
+      final bgPath = await _fileService.loadBackgroundImagePath(); // o read from prefs
+
+      _backgroundOpacity = opacity ?? 0.5;
+      _backgroundImagePath = bgPath;
 
       final fileData = await _fileStorage.readConfiguration();
       if (fileData != null) {
@@ -62,6 +73,18 @@ class ConfigurationData extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setBackgroundOpacity(double value) {
+    _backgroundOpacity = value;
+    _prefs.saveBackgroundOpacity(value);
+    notifyListeners();
+  }
+
+  void setBackgroundImagePath(String? path) {
+    _backgroundImagePath = path;
+    _prefs.saveBackgroundImagePath(path ?? '');
+    notifyListeners();
   }
 
   void setGridSize(int newSize) {
