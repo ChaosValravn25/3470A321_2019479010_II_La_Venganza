@@ -30,27 +30,26 @@ class FileStorageService {
 
   /// Guarda la configuración actual en formato JSON dentro de un archivo local.
   /// Los datos incluyen el tamaño de grilla y el color principal de la app.
+    /// 🔹 Guarda todos los datos de configuración en un JSON local.
   Future<void> saveConfiguration({
     required int gridSize,
     required String mainColor,
+    double? opacity,
+    String? backgroundPath,
   }) async {
     try {
       final file = await _getConfigFile();
-
-      // Creamos un mapa con los datos a guardar
       final data = {
         "gridSize": gridSize,
         "mainColor": mainColor,
+        "opacity": opacity,
+        "backgroundPath": backgroundPath,
         "timestamp": DateTime.now().toIso8601String(),
       };
-
-      // Convertimos el mapa a JSON y lo escribimos en el archivo
       await file.writeAsString(jsonEncode(data));
-      // ignore: avoid_print
-      print("💾 Archivo guardado en: ${file.path}");
+      print("💾 Archivo guardado: ${file.path}");
     } catch (e) {
-      // ignore: avoid_print
-      print("⚠️ Error al guardar archivo de configuración: $e");
+      print("⚠️ Error al guardar configuración: $e");
     }
   }
 

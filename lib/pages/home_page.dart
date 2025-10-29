@@ -1,8 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../providers/configuration_data.dart';
-import 'dart:io';
 
 final logger = Logger();
 
@@ -16,26 +16,31 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: config.mainColor,
         title: Text(title),
+        backgroundColor: config.mainColor,
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'backup') {
-                await config.backupToFile();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("💾 Respaldo guardado exitosamente")),
-                );
-              } else if (value == 'restore') {
-                await config.restoreFromFile();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("🔁 Configuración restaurada")),
-                );
-              } else {
-                Navigator.pushNamed(context, value);
-              }
+            if (value == 'backup') {
+              await config.backupToFile();
+              ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("💾 Respaldo guardado exitosamente")),
+               );
+           } else if (value == 'restore') {
+          await config.restoreFromFile();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("🔁 Configuración restaurada")),
+          );
+           } else if (value == 'share') {
+          await config.shareBackupFile(); // 👈 esta es la línea clave
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("📤 Respaldo compartido")),
+          );
+            } else {
+              Navigator.pushNamed(context, value);
+            }
             },
-            itemBuilder: (BuildContext context) => [
+            itemBuilder: (context) => [
               const PopupMenuItem(value: '/config', child: Text('Configuración')),
               const PopupMenuItem(value: '/pixelArt', child: Text('Pixel Art')),
               const PopupMenuItem(value: '/listArt', child: Text('Lista de Arte')),
@@ -44,46 +49,35 @@ class HomePage extends StatelessWidget {
               const PopupMenuDivider(),
               const PopupMenuItem(value: 'backup', child: Text('💾 Crear respaldo')),
               const PopupMenuItem(value: 'restore', child: Text('🔁 Restaurar respaldo')),
+              const PopupMenuItem(value: 'shareBackup', child: Text('📤 Compartir respaldo')),
             ],
           ),
         ],
       ),
       body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Laboratorio 7 - Persistencia extendida\n(Rutas y archivos locales)",
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: config.mainColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 30),
-              Text(
-                "Color activo: ${config.mainColorString}",
-                style: TextStyle(fontSize: 16, color: config.mainColor),
-              ),
-              const SizedBox(height: 20),
-              if (config.lastImagePath != null)
-                Image.file(
-                  File(config.lastImagePath!),
-                  height: 200,
-                  width: 200,
-                  fit: BoxFit.cover,
-                )
-              else
-                const Text("No hay creaciones recientes"),
-              const SizedBox(height: 40),
-              _buildButton(context, "🎨 Pixel Art", '/pixelArt', Colors.teal),
-              _buildButton(context, "⚙️ Configuración", '/config', Colors.orange),
-              _buildButton(context, "📋 Lista de Arte", '/listArt', Colors.indigo),
-              _buildButton(context, "🧱 Creaciones", '/listCreation', Colors.blueGrey),
-              _buildButton(context, "ℹ️ Acerca de", '/about', Colors.green),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Laboratorio 8 - Interacción con otras aplicaciones",
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: config.mainColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            if (config.lastImagePath != null)
+              Image.file(File(config.lastImagePath!), height: 180)
+            else
+              const Text("No hay creaciones recientes"),
+            const SizedBox(height: 30),
+            _buildButton(context, "🎨 Pixel Art", '/pixelArt', Colors.teal),
+            _buildButton(context, "⚙️ Configuración", '/config', Colors.orange),
+            _buildButton(context, "📋 Lista de Arte", '/listArt', Colors.indigo),
+            _buildButton(context, "🧱 Creaciones", '/listCreation', Colors.blueGrey),
+            _buildButton(context, "ℹ️ Acerca de", '/about', Colors.green),
+          ],
         ),
       ),
     );
@@ -98,13 +92,12 @@ class HomePage extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: color,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () {
-            logger.i("Navegando a $route");
             Navigator.pushNamed(context, route);
+            logger.i("Navegando a $route");
           },
-          child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(text),
         ),
       ),
     );

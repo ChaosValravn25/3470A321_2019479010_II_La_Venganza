@@ -159,56 +159,67 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
         ],
       ),
       body: Center(
-        child: Column(
-          children: [
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: config.gridSize,
-                ),
-                itemCount: config.gridSize * config.gridSize,
-                itemBuilder: (context, index) {
-                  final x = index ~/ config.gridSize;
-                  final y = index % config.gridSize;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        grid[x][y] = grid[x][y] == Colors.white
-                            ? config.mainColor
-                            : Colors.white;
-                      });
-                      logger.d("Célula ($x, $y) cambiada a ${grid[x][y]}");
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(1),
-                      color: grid[x][y],
-                    ),
-                  );
+  child: Container(
+    decoration: config.backgroundImagePath != null
+        ? BoxDecoration(
+            image: DecorationImage(
+              image: FileImage(File(config.backgroundImagePath!)),
+              fit: BoxFit.cover,
+              opacity: config.backgroundOpacity,
+            ),
+          )
+        : null,
+    child: Column(
+      children: [
+        Expanded(
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: config.gridSize,
+            ),
+            itemCount: config.gridSize * config.gridSize,
+            itemBuilder: (context, index) {
+              final x = index ~/ config.gridSize;
+              final y = index % config.gridSize;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    grid[x][y] = grid[x][y] == Colors.white
+                        ? config.mainColor
+                        : Colors.white;
+                  });
+                  logger.d("Célula ($x, $y) cambiada a ${grid[x][y]}");
                 },
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  grid = List.generate(
-                    config.gridSize,
-                    (_) => List.filled(config.gridSize, Colors.white),
-                  );
-                });
-                logger.i("Grilla reiniciada por el usuario");
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: config.mainColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-              ),
-              icon: const Icon(Icons.cleaning_services_outlined),
-              label: const Text("Limpiar grilla"),
-            ),
-            const SizedBox(height: 20),
-          ],
+                child: Container(
+                  margin: const EdgeInsets.all(1),
+                  color: grid[x][y],
+                ),
+              );
+            },
+          ),
         ),
-      ),
+        ElevatedButton.icon(
+          onPressed: () {
+            setState(() {
+              grid = List.generate(
+                config.gridSize,
+                (_) => List.filled(config.gridSize, Colors.white),
+              );
+            });
+            logger.i("Grilla reiniciada por el usuario");
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: config.mainColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
+          ),
+          icon: const Icon(Icons.cleaning_services_outlined),
+          label: const Text("Limpiar grilla"),
+        ),
+        const SizedBox(height: 20),
+      ],
+    ),
+  ),
+),
     );
   }
 }
