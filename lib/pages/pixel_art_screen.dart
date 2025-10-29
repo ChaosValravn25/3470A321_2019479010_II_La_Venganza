@@ -7,6 +7,9 @@ import 'dart:ui' as ui;
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import '../providers/configuration_data.dart';
+import '../model/pixel_art.dart';
+import '../services/pixel_art_repository.dart';
+import 'dart:convert';
 
 var logger = Logger();
 
@@ -65,6 +68,33 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
     super.reassemble();
     logger.d("reassemble ejecutado (Hot Reload)");
   }
+
+  Future<void> _savePixelArtProgress() async {
+  final config = Provider.of<ConfigurationData>(context, listen: false);
+  final repo = PixelArtRepository();
+
+  // Convertimos la grilla a JSON (guardando colores en hex)
+  final gridJson = jsonEncode(grid.map((row) => row.map((c) => c.value.toRadixString(16)).toList()).toList());
+
+  final art = PixelArt(
+    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    authorId: '2019479010',
+    title: 'Pixel Art Guardado',
+    description: 'Progreso actual del usuario',
+    size: {'rows': grid.length, 'cols': grid[0].length},
+    palette: [config.mainColor.value.toRadixString(16)],
+    gridData: gridJson,
+    createdAt: DateTime.now(),
+    lastModifiedAt: DateTime.now(),
+  );
+
+  await repo.save(art);
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("💾 Progreso de pixel art guardado")),
+  );
+}
+
+
 
   // --------------------------------------------------------------------------
   // 🔹 FUNCIONES DE GUARDADO Y COMPARTIR
@@ -193,7 +223,11 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
             icon: const Icon(Icons.share),
             tooltip: 'Compartir imagen',
             onPressed: _sharePixelArt,
-          ),
+          ),IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: 'Guardar progreso del pixel art',
+            onPressed: _savePixelArtProgress,
+         ),
           IconButton(
             icon: const Icon(Icons.restore),
             tooltip: 'Restaurar configuración',
