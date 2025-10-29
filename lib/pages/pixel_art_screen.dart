@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart'; // ✅ Import para cámara
 import 'dart:ui' as ui;
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import '../providers/configuration_data.dart';
-
 
 var logger = Logger();
 
@@ -20,6 +20,9 @@ class PixelArtScreen extends StatefulWidget {
 class _PixelArtScreenState extends State<PixelArtScreen> {
   late List<List<Color>> grid;
   bool initialized = false;
+
+  File? _backgroundImage;
+  double _backgroundOpacity = 0.5;
 
   @override
   void initState() {
@@ -63,31 +66,42 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
     logger.d("reassemble ejecutado (Hot Reload)");
   }
 
+  // --------------------------------------------------------------------------
+  // 🔹 FUNCIONES DE GUARDADO Y COMPARTIR
+  // --------------------------------------------------------------------------
   Future<String> _savePixelArt() async {
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, grid.length * 20.0, grid.length * 20.0));
+    final canvas =
+        Canvas(recorder, Rect.fromLTWH(0, 0, grid.length * 20.0, grid.length * 20.0));
+
     for (int row = 0; row < grid.length; row++) {
       for (int col = 0; col < grid[row].length; col++) {
         final paint = Paint()..color = grid[row][col];
         canvas.drawRect(Rect.fromLTWH(col * 20.0, row * 20.0, 20.0, 20.0), paint);
       }
     }
+
     final picture = recorder.endRecording();
     final image = await picture.toImage(grid.length * 20, grid.length * 20);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final imageBytes = byteData!.buffer.asUint8List();
+
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/pixel_art_${DateTime.now().millisecondsSinceEpoch}.png';
+    final filePath =
+        '${directory.path}/pixel_art_${DateTime.now().millisecondsSinceEpoch}.png';
     final file = File(filePath);
     await file.writeAsBytes(imageBytes);
-    logger.d("Pixel art saved to: $filePath");
+
+    logger.d("Pixel art guardado en: $filePath");
+
     if (mounted) {
       final config = Provider.of<ConfigurationData>(context, listen: false);
       config.addCreation(filePath);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pixel art saved to: $filePath')),
+        SnackBar(content: Text('🖼️ Imagen guardada en: $filePath')),
       );
     }
+
     return filePath;
   }
 
@@ -95,11 +109,53 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
     if (mounted && grid.isNotEmpty) {
       final filePath = await _savePixelArt();
       final xFile = XFile(filePath, mimeType: 'image/png');
-      await Share.shareXFiles([xFile], text: '¡Mira mi increíble pixel art creado el ${DateTime.now()} a las 01:09 AM -03!');
+      await Share.shareXFiles([xFile],
+          text:
+              '¡Mira mi increíble pixel art creado el ${DateTime.now()} con Flutter! 🎨');
       logger.i("Imagen compartida desde: $filePath");
     }
   }
 
+  // --------------------------------------------------------------------------
+  // 📷 FUNCIONES DE CÁMARA Y FONDO
+  // --------------------------------------------------------------------------
+  Future<void> _takePicture() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      final directory = await getApplicationDocumentsDirectory();
+      final filePath = '${directory.path}/background_image.png';
+      final newImage = File(pickedFile.path);
+
+      // Eliminar fondo anterior si existía
+      if (_backgroundImage != null && _backgroundImage!.existsSync()) {
+        _backgroundImage!.deleteSync();
+      }
+
+      newImage.copySync(filePath);
+
+      setState(() {
+        _backgroundImage = File(filePath);
+      });
+
+      logger.i("📸 Nueva imagen de fondo guardada: $filePath");
+    }
+  }
+
+  void _deleteBackgroundImage() {
+    if (_backgroundImage != null && _backgroundImage!.existsSync()) {
+      _backgroundImage!.deleteSync();
+    }
+    setState(() {
+      _backgroundImage = null;
+    });
+    logger.w("🗑️ Imagen de fondo eliminada");
+  }
+
+  // --------------------------------------------------------------------------
+  // 🧱 INTERFAZ
+  // --------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final config = Provider.of<ConfigurationData>(context);
@@ -110,9 +166,7 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
           backgroundColor: Colors.grey[400],
           title: const Text("Pixel Art"),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -122,7 +176,7 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
         (_) => List.filled(config.gridSize, Colors.white),
       );
       initialized = true;
-      logger.i("Grilla inicializada con tamaño ${config.gridSize}x${config.gridSize}");
+      logger.i("🧩 Grilla inicializada con tamaño ${config.gridSize}x${config.gridSize}");
     }
 
     return Scaffold(
@@ -159,67 +213,116 @@ class _PixelArtScreenState extends State<PixelArtScreen> {
         ],
       ),
       body: Center(
-  child: Container(
-    decoration: config.backgroundImagePath != null
-        ? BoxDecoration(
-            image: DecorationImage(
-              image: FileImage(File(config.backgroundImagePath!)),
-              fit: BoxFit.cover,
-              opacity: config.backgroundOpacity,
-            ),
-          )
-        : null,
-    child: Column(
-      children: [
-        Expanded(
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: config.gridSize,
-            ),
-            itemCount: config.gridSize * config.gridSize,
-            itemBuilder: (context, index) {
-              final x = index ~/ config.gridSize;
-              final y = index % config.gridSize;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    grid[x][y] = grid[x][y] == Colors.white
-                        ? config.mainColor
-                        : Colors.white;
-                  });
-                  logger.d("Célula ($x, $y) cambiada a ${grid[x][y]}");
-                },
-                child: Container(
-                  margin: const EdgeInsets.all(1),
-                  color: grid[x][y],
+        child: Container(
+          decoration: _backgroundImage != null
+              ? BoxDecoration(
+                  image: DecorationImage(
+                    image: FileImage(_backgroundImage!),
+                    fit: BoxFit.cover,
+                    opacity: _backgroundOpacity,
+                  ),
+                )
+              : null,
+          child: Column(
+            children: [
+              // 🔸 Control de opacidad
+              if (_backgroundImage != null)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Ajustar opacidad del fondo",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Slider(
+                        value: _backgroundOpacity,
+                        min: 0.1,
+                        max: 1.0,
+                        divisions: 10,
+                        label: '${(_backgroundOpacity * 100).toInt()}%',
+                        onChanged: (value) {
+                          setState(() {
+                            _backgroundOpacity = value;
+                          });
+                          context.read<ConfigurationData>().setBackgroundOpacity(value);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            },
+
+              // 🔸 Grilla principal
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: config.gridSize,
+                  ),
+                  itemCount: config.gridSize * config.gridSize,
+                  itemBuilder: (context, index) {
+                    final x = index ~/ config.gridSize;
+                    final y = index % config.gridSize;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          grid[x][y] = grid[x][y] == Colors.white
+                              ? config.mainColor
+                              : Colors.white;
+                        });
+                        logger.d("Célula ($x, $y) cambiada a ${grid[x][y]}");
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(1),
+                        color: grid[x][y],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // 🔸 Botones de control
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        grid = List.generate(
+                          config.gridSize,
+                          (_) => List.filled(config.gridSize, Colors.white),
+                        );
+                      });
+                      logger.i("🧼 Grilla reiniciada por el usuario");
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: config.mainColor,
+                      foregroundColor: Colors.white,
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                    ),
+                    icon: const Icon(Icons.cleaning_services_outlined),
+                    label: const Text("Limpiar grilla"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _takePicture,
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text("Tomar foto"),
+                  ),
+                  if (_backgroundImage != null)
+                    ElevatedButton.icon(
+                      onPressed: _deleteBackgroundImage,
+                      icon: const Icon(Icons.delete_forever),
+                      label: const Text("Eliminar fondo"),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
-        ElevatedButton.icon(
-          onPressed: () {
-            setState(() {
-              grid = List.generate(
-                config.gridSize,
-                (_) => List.filled(config.gridSize, Colors.white),
-              );
-            });
-            logger.i("Grilla reiniciada por el usuario");
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: config.mainColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
-          ),
-          icon: const Icon(Icons.cleaning_services_outlined),
-          label: const Text("Limpiar grilla"),
-        ),
-        const SizedBox(height: 20),
-      ],
-    ),
-  ),
-),
+      ),
     );
   }
 }
